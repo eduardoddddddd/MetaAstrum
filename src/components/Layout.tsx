@@ -27,7 +27,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     <div className="min-h-screen bg-[#faf9f7] flex flex-col md:flex-row font-sans text-stone-900">
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 bg-white border-b border-stone-200">
-        <h1 className="font-serif text-2xl tracking-wide">Astraea</h1>
+        <h1 className="font-serif text-2xl tracking-wide">MetaAstrum</h1>
         <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -42,7 +42,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
         <div className="p-8 hidden md:block">
           <div className="flex items-center gap-3 mb-2">
             <Star className="w-6 h-6 text-stone-400" strokeWidth={1.5} />
-            <h1 className="font-serif text-3xl tracking-wide font-medium">Astraea</h1>
+            <h1 className="font-serif text-3xl tracking-wide font-medium">MetaAstrum</h1>
           </div>
           <p className="text-xs text-stone-500 uppercase tracking-widest mt-2">Astrología Clásica</p>
         </div>
