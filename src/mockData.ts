@@ -30,7 +30,9 @@ export const getFirdaria = (birthDate: Date, isDayBirth: boolean): FirdariaPerio
 };
 
 export const getProfections = (birthDate: Date, targetDate: Date, ascendantSign: ZodiacSign): ProfectionData => {
-  const age = targetDate.getFullYear() - birthDate.getFullYear();
+  let age = targetDate.getFullYear() - birthDate.getFullYear();
+  const mDiff = targetDate.getMonth() - birthDate.getMonth();
+  if (mDiff < 0 || (mDiff === 0 && targetDate.getDate() < birthDate.getDate())) age--;
   const startIndex = SIGNS.indexOf(ascendantSign);
   const currentSignIndex = (startIndex + age) % 12;
   const yearSign = SIGNS[currentSignIndex];
