@@ -57,7 +57,7 @@ export default function App() {
       case 'transits':
         return <Transits natalData={natalData} transitData={transitData} />;
       case 'firdaria':
-        return <Firdaria periods={firdariaPeriods} />;
+        return <Firdaria periods={firdariaPeriods} natalData={natalData} />;
       case 'profections':
         return <Profections data={profectionData} />;
       case 'progressions':
