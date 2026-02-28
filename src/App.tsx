@@ -31,6 +31,8 @@ export default function App() {
   const [lon, setLon] = useState(-3.7038);
   const [interpretation, setInterpretation] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [transitDate, setTransitDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [transitTime, setTransitTime] = useState(() => new Date().toTimeString().slice(0, 5));
   const [chartName, setChartName] = useState('');
   const [savedCharts, setSavedCharts] = useState<SavedChart[]>(() => {
     try {
@@ -41,10 +43,11 @@ export default function App() {
   });
 
   const fullBirthDate = useMemo(() => new Date(`${birthDate}T${birthTime}:00`), [birthDate, birthTime]);
+  const fullTransitDate = useMemo(() => new Date(`${transitDate}T${transitTime}:00`), [transitDate, transitTime]);
   const now = useMemo(() => new Date(), []);
 
   const natalData = useMemo(() => getRealNatalChart(fullBirthDate, lat, lon), [fullBirthDate, lat, lon]);
-  const transitData = useMemo(() => getRealNatalChart(now, lat, lon), [now, lat, lon]);
+  const transitData = useMemo(() => getRealNatalChart(fullTransitDate, lat, lon), [fullTransitDate, lat, lon]);
   const progressionData = useMemo(() => getProgressions(fullBirthDate, now, lat, lon), [fullBirthDate, now, lat, lon]);
   const directedData = useMemo(() => getRealNatalChart(new Date(fullBirthDate.getTime() + (now.getFullYear() - fullBirthDate.getFullYear()) * 24 * 60 * 60 * 1000), lat, lon), [fullBirthDate, now, lat, lon]);
   const horaryData = useMemo(() => getRealNatalChart(now, lat, lon), [now, lat, lon]);
@@ -105,7 +108,16 @@ export default function App() {
           </>
         );
       case 'transits':
-        return <Transits natalData={natalData} transitData={transitData} />;
+        return (
+          <Transits
+            natalData={natalData}
+            transitData={transitData}
+            transitDate={transitDate}
+            transitTime={transitTime}
+            setTransitDate={setTransitDate}
+            setTransitTime={setTransitTime}
+          />
+        );
       case 'firdaria':
         return <Firdaria periods={firdariaPeriods} natalData={natalData} />;
       case 'profections':
