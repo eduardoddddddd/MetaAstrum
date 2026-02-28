@@ -66,22 +66,26 @@ export function calculateChart(date: Date, lat: number, lon: number): ChartData 
   const T = (jdate.tt - 2451545.0) / 36525.0; // Julian centuries from J2000.0
   const obl = 23.439291111 - 0.013004167 * T - 0.0000001639 * T * T + 0.0000005036 * T * T * T;
 
-  // Ascendant — Jean Meeus "Astronomical Algorithms" formula:
-  // tan(ASC) = -cos(RAMC) / (sin(RAMC)*cos(ε) + tan(φ)*sin(ε))
   const ramcRad = ramc * Math.PI / 180;
   const oblRad = obl * Math.PI / 180;
   const latRad = lat * Math.PI / 180;
-  const ascRad = Math.atan2(
-    -Math.cos(ramcRad),
-    Math.sin(ramcRad) * Math.cos(oblRad) + Math.tan(latRad) * Math.sin(oblRad)
-  );
-  let ascDeg = (ascRad * 180 / Math.PI + 360) % 360;
 
-  // MC — atan2(tan(RAMC), cos(ε))
-  const mcRad = Math.atan2(Math.tan(ramcRad), Math.cos(oblRad));
-  let mcDeg = (mcRad * 180 / Math.PI + 360) % 360;
-  // Ensure MC is in the correct semicircle relative to RAMC
-  if (Math.abs(mcDeg - ramc) > 90 && Math.abs(mcDeg - ramc) < 270) mcDeg = (mcDeg + 180) % 360;
+  // Ascendant — Jean Meeus "Astronomical Algorithms":
+  // tan(ASC) = -cos(RAMC) / (sin(RAMC)*cos(ε) + tan(φ)*sin(ε))
+  // atan2 gives one of two solutions (ASC or DESC). Pick the one whose RA ∈ [RAMC, RAMC+180°).
+  const num = -Math.cos(ramcRad);
+  const den = Math.sin(ramcRad) * Math.cos(oblRad) + Math.tan(latRad) * Math.sin(oblRad);
+  let ascDeg = (Math.atan2(num, den) * 180 / Math.PI + 360) % 360;
+  // Convert ecliptic longitude → Right Ascension
+  const eclToRA = (lambda: number) => {
+    const l = lambda * Math.PI / 180;
+    return ((Math.atan2(Math.sin(l) * Math.cos(oblRad), Math.cos(l)) * 180 / Math.PI) + 360) % 360;
+  };
+  // If the candidate's RA is NOT in [RAMC, RAMC+180°), flip to the other solution
+  if ((eclToRA(ascDeg) - ramc + 360) % 360 >= 180) ascDeg = (ascDeg + 180) % 360;
+
+  // MC — correct formula: atan2(sin(RAMC), cos(RAMC)*cos(ε)) preserves quadrant automatically
+  const mcDeg = ((Math.atan2(Math.sin(ramcRad), Math.cos(ramcRad) * Math.cos(oblRad)) * 180 / Math.PI) + 360) % 360;
 
   const ascInfo = getZodiacSign(ascDeg);
 
