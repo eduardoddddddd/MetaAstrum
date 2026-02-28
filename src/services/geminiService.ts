@@ -1,10 +1,20 @@
 import { GoogleGenAI } from "@google/genai";
 import { ChartData, ProfectionData, FirdariaPeriod } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+function getAI() {
+  const apiKey = process.env.GEMINI_API_KEY || '';
+  if (!apiKey) return null;
+  try {
+    return new GoogleGenAI({ apiKey });
+  } catch {
+    return null;
+  }
+}
 
 export async function getGlobalInterpretation(data: ChartData, type: string) {
   try {
+    const ai = getAI();
+    if (!ai) return "Interpretación IA no disponible (configura GEMINI_API_KEY).";
     const prompt = `Actúa como un astrólogo profesional experto en astrología clásica y helenística. 
     Analiza los siguientes datos técnicos de una ${type} y proporciona un detalle global elegante y profundo en español.
     
@@ -34,6 +44,8 @@ export async function getGlobalInterpretation(data: ChartData, type: string) {
 
 export async function getTechniqueInterpretation(technique: string, technicalData: any) {
   try {
+    const ai = getAI();
+    if (!ai) return "";
     const prompt = `Explica la siguiente técnica astrológica (${technique}) basada en estos datos: ${JSON.stringify(technicalData)}.
     Proporciona un texto breve, profesional y elegante en español que explique qué significa este período o configuración para el consultante.`;
 
