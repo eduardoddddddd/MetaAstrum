@@ -37,11 +37,15 @@ export function calculateChart(date: Date, lat: number, lon: number): ChartData 
     const ecliptic = Astronomy.Ecliptic(equat.vec);
     const { sign, degree, minute } = getZodiacSign(ecliptic.elon);
     
-    // Check retrograde (simplified: check velocity)
-    const jdate2 = Astronomy.MakeTime(new Date(date.getTime() + 3600000)); // 1 hour later
+    // Check retrograde by comparing longitude 1 hour later
+    const jdate2 = Astronomy.MakeTime(new Date(date.getTime() + 3600000));
     const equat2 = Astronomy.Equator(body, jdate2, observer, true, true);
     const ecliptic2 = Astronomy.Ecliptic(equat2.vec);
-    const retrograde = ecliptic2.elon < ecliptic.elon;
+    // Normalize the diff to [-180, 180] to handle the 0°/360° boundary correctly
+    let lonDiff = ecliptic2.elon - ecliptic.elon;
+    if (lonDiff > 180) lonDiff -= 360;
+    if (lonDiff < -180) lonDiff += 360;
+    const retrograde = lonDiff < 0;
 
     return {
       planet: name as Planet,
@@ -53,20 +57,31 @@ export function calculateChart(date: Date, lat: number, lon: number): ChartData 
     };
   });
 
-  // Calculate Ascendant (simplified for web: using Sidereal Time)
   // Sidereal time at Greenwich
   const gst = Astronomy.SiderealTime(jdate);
   const lst = (gst + lon / 15) % 24;
-  const ramc = lst * 15;
-  
-  // Obliquity of ecliptic
-  const obl = 23.43929; // Approximate
+  const ramc = lst * 15; // RAMC in degrees
+
+  // Obliquity of ecliptic (Meeus formula, more accurate than hardcoded constant)
+  const T = (jdate.tt - 2451545.0) / 36525.0; // Julian centuries from J2000.0
+  const obl = 23.439291111 - 0.013004167 * T - 0.0000001639 * T * T + 0.0000005036 * T * T * T;
+
+  // Ascendant — Jean Meeus "Astronomical Algorithms" formula:
+  // tan(ASC) = -cos(RAMC) / (sin(RAMC)*cos(ε) + tan(φ)*sin(ε))
+  const ramcRad = ramc * Math.PI / 180;
+  const oblRad = obl * Math.PI / 180;
+  const latRad = lat * Math.PI / 180;
   const ascRad = Math.atan2(
-    Math.cos(ramc * Math.PI / 180),
-    -(Math.sin(ramc * Math.PI / 180) * Math.cos(obl * Math.PI / 180) + Math.tan(lat * Math.PI / 180) * Math.sin(obl * Math.PI / 180))
+    -Math.cos(ramcRad),
+    Math.sin(ramcRad) * Math.cos(oblRad) + Math.tan(latRad) * Math.sin(oblRad)
   );
-  let ascDeg = (ascRad * 180 / Math.PI + 90) % 360;
-  if (ascDeg < 0) ascDeg += 360;
+  let ascDeg = (ascRad * 180 / Math.PI + 360) % 360;
+
+  // MC — atan2(tan(RAMC), cos(ε))
+  const mcRad = Math.atan2(Math.tan(ramcRad), Math.cos(oblRad));
+  let mcDeg = (mcRad * 180 / Math.PI + 360) % 360;
+  // Ensure MC is in the correct semicircle relative to RAMC
+  if (Math.abs(mcDeg - ramc) > 90 && Math.abs(mcDeg - ramc) < 270) mcDeg = (mcDeg + 180) % 360;
 
   const ascInfo = getZodiacSign(ascDeg);
 
@@ -89,7 +104,7 @@ export function calculateChart(date: Date, lat: number, lon: number): ChartData 
     houses,
     aspects: calculateAspects(planets),
     ascendant: ascInfo,
-    mc: getZodiacSign((ascDeg + 270) % 360), // Simplified MC
+    mc: getZodiacSign(mcDeg),
   };
 }
 
@@ -107,8 +122,8 @@ function calculateAspects(planets: PlanetPosition[]): any[] {
     for (let j = i + 1; j < planets.length; j++) {
       const p1 = planets[i];
       const p2 = planets[j];
-      const long1 = SIGNS.indexOf(p1.sign) * 30 + p1.degree;
-      const long2 = SIGNS.indexOf(p2.sign) * 30 + p2.degree;
+      const long1 = SIGNS.indexOf(p1.sign) * 30 + p1.degree + p1.minute / 60;
+      const long2 = SIGNS.indexOf(p2.sign) * 30 + p2.degree + p2.minute / 60;
       const diff = Math.abs(long1 - long2);
       const dist = Math.min(diff, 360 - diff);
 
