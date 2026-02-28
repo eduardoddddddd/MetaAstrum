@@ -9,6 +9,11 @@ interface Props {
 }
 
 export default function Firdaria({ periods, natalData }: Props) {
+  const today = new Date();
+  const currentIdx = periods.findIndex(p => new Date(p.startDate) <= today && today < new Date(p.endDate));
+  const current = currentIdx >= 0 ? periods[currentIdx] : periods[periods.length - 1];
+  const activeIdx = currentIdx >= 0 ? currentIdx : periods.length - 1;
+
   return (
     <div className="animate-in fade-in duration-700">
       <header className="mb-12 border-b border-stone-200 pb-8">
@@ -21,15 +26,15 @@ export default function Firdaria({ periods, natalData }: Props) {
         <div className="flex flex-col md:flex-row md:items-center gap-8">
           <div className="flex-1">
             <div className="text-xs text-stone-400 uppercase tracking-widest mb-2">Planeta Regente Mayor</div>
-            <div className="font-serif text-4xl text-stone-900 mb-4">{periods[1].planet}</div>
+            <div className="font-serif text-4xl text-stone-900 mb-4">{current.planet}</div>
             <div className="text-sm text-stone-500 font-mono">
-              {format(parseISO(periods[1].startDate), "d 'de' MMMM, yyyy", { locale: es })} —
-              {format(parseISO(periods[1].endDate), "d 'de' MMMM, yyyy", { locale: es })}
+              {format(parseISO(current.startDate), "d 'de' MMMM, yyyy", { locale: es })} —
+              {format(parseISO(current.endDate), "d 'de' MMMM, yyyy", { locale: es })}
             </div>
           </div>
           <div className="flex-1 border-t md:border-t-0 md:border-l border-stone-200 pt-6 md:pt-0 md:pl-8">
             <p className="text-stone-600 text-sm leading-relaxed">
-              Durante este período mayor de {periods[1].planet}, los temas de la casa que rige en la carta natal
+              Durante este período mayor de {current.planet}, los temas de la casa que rige en la carta natal
               y la casa donde se encuentra situado tomarán precedencia. Este es un tiempo de desarrollo
               relacionado con la naturaleza esencial de este planeta.
             </p>
@@ -46,10 +51,10 @@ export default function Firdaria({ periods, natalData }: Props) {
             <div key={i} className="relative pl-8 md:pl-12">
               <div className={`
                 absolute w-3 h-3 rounded-full -left-[6.5px] top-1.5 border-2 border-white
-                ${i === 1 ? 'bg-stone-800' : 'bg-stone-300'}
+                ${i === activeIdx ? 'bg-stone-800' : 'bg-stone-300'}
               `} />
               <div className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-6 mb-2">
-                <span className={`font-serif text-2xl ${i === 1 ? 'text-stone-900' : 'text-stone-600'}`}>
+                <span className={`font-serif text-2xl ${i === activeIdx ? 'text-stone-900' : 'text-stone-600'}`}>
                   {p.planet}
                 </span>
                 <span className="text-xs font-mono text-stone-400">
