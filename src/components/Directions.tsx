@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChartData } from '../types';
+import { getPlanetLongitude, getNearestAspect } from '../utils/astroUtils';
 
 interface Props {
   natalData: ChartData;
@@ -56,16 +57,16 @@ export default function Directions({ natalData, directedData }: Props) {
           <h3 className="font-serif text-2xl mb-6 text-stone-800 border-b border-stone-100 pb-2">Contactos Actuales</h3>
           <div className="space-y-4">
             {directedData.planets.slice(0, 3).map((p, i) => {
-              const aspectType = i === 0 ? 'Conjunción' : i === 1 ? 'Cuadratura' : 'Oposición';
               const natalPlanet = natalData.planets[(i + 4) % natalData.planets.length];
+              const asp = getNearestAspect(getPlanetLongitude(p), getPlanetLongitude(natalPlanet));
               return (
                 <div key={i} className="flex justify-between items-center p-4 bg-stone-50 rounded-lg border border-stone-100">
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-stone-800">{p.planet} dir.</span>
-                    <span className="text-xs text-stone-400 uppercase tracking-wider">{aspectType}</span>
+                    <span className="text-xs text-stone-400 uppercase tracking-wider">{asp.type}</span>
                     <span className="text-sm font-medium text-stone-600">{natalPlanet.planet} n.</span>
                   </div>
-                  <span className="text-xs font-mono text-stone-500">Orbe: {(Math.random() * 0.5).toFixed(2)}°</span>
+                  <span className="text-xs font-mono text-stone-500">Orbe: {asp.orb}°</span>
                 </div>
               );
             })}

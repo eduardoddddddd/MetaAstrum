@@ -3,6 +3,7 @@ import { ChartData } from '../types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Search } from 'lucide-react';
+import { getPlanetLongitude, getRemainingDegrees } from '../utils/astroUtils';
 
 interface Props {
   horaryData: ChartData;
@@ -125,7 +126,13 @@ export default function Horary({ horaryData }: Props) {
                       <span className="text-xs text-stone-400 uppercase tracking-wider">Trígono</span>
                       <span className="text-sm font-medium text-stone-600">{horaryData.planets[3].planet}</span>
                     </div>
-                    <span className="text-xs font-mono text-stone-500">en {(Math.random() * 5).toFixed(1)}°</span>
+                    <span className="text-xs font-mono text-stone-500">
+                      en {getRemainingDegrees(
+                        getPlanetLongitude(horaryData.planets.find(p => p.planet === 'Moon')!),
+                        getPlanetLongitude(horaryData.planets[3]),
+                        120
+                      )}°
+                    </span>
                   </li>
                   <li className="flex justify-between items-center py-2 border-b border-stone-50">
                     <div className="flex items-center gap-2">
@@ -133,7 +140,13 @@ export default function Horary({ horaryData }: Props) {
                       <span className="text-xs text-stone-400 uppercase tracking-wider">Cuadratura</span>
                       <span className="text-sm font-medium text-stone-600">{horaryData.planets[5].planet}</span>
                     </div>
-                    <span className="text-xs font-mono text-stone-500">en {(Math.random() * 10 + 5).toFixed(1)}°</span>
+                    <span className="text-xs font-mono text-stone-500">
+                      en {getRemainingDegrees(
+                        getPlanetLongitude(horaryData.planets.find(p => p.planet === 'Moon')!),
+                        getPlanetLongitude(horaryData.planets[5]),
+                        90
+                      )}°
+                    </span>
                   </li>
                 </ul>
               </div>

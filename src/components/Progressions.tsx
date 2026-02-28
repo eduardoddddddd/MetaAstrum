@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChartData } from '../types';
+import { getPlanetLongitude, getNearestAspect } from '../utils/astroUtils';
 
 interface Props {
   natalData: ChartData;
@@ -56,16 +57,16 @@ export default function Progressions({ natalData, progressionData }: Props) {
           <h3 className="font-serif text-2xl mb-6 text-stone-800 border-b border-stone-100 pb-2">Aspectos Progresados a Natales</h3>
           <div className="space-y-4">
             {progressionData.planets.slice(0, 4).map((p, i) => {
-              const aspectType = i % 2 === 0 ? 'Trígono' : 'Sextil';
               const natalPlanet = natalData.planets[(i + 2) % natalData.planets.length];
+              const asp = getNearestAspect(getPlanetLongitude(p), getPlanetLongitude(natalPlanet));
               return (
                 <div key={i} className="flex justify-between items-center p-4 bg-stone-50 rounded-lg border border-stone-100">
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-stone-800">{p.planet} p.</span>
-                    <span className="text-xs text-stone-400 uppercase tracking-wider">{aspectType}</span>
+                    <span className="text-xs text-stone-400 uppercase tracking-wider">{asp.type}</span>
                     <span className="text-sm font-medium text-stone-600">{natalPlanet.planet} n.</span>
                   </div>
-                  <span className="text-xs font-mono text-stone-500">Orbe: {(Math.random() * 1).toFixed(1)}°</span>
+                  <span className="text-xs font-mono text-stone-500">Orbe: {asp.orb}°</span>
                 </div>
               );
             })}
